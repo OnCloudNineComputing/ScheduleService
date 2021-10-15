@@ -100,6 +100,67 @@ class RDBService:
         return res
 
     @classmethod
+    def find_by_id(cls, db_schema, table_name, id, field_list):
+
+        conn = RDBService._get_db_connection()
+        cur = conn.cursor()
+
+        sql = "select * from " + db_schema + "." + table_name + " where id=%s"
+        args = [id]
+        res = cur.execute(sql, args=args)
+        res = cur.fetchall()
+
+        conn.close()
+
+        return res
+
+    @classmethod
+    def delete_by_id(cls, db_schema, table_name, id, field_list):
+
+        conn = RDBService._get_db_connection()
+        cur = conn.cursor()
+
+        sql = "delete from " + db_schema + "." + table_name + " where id=%s"
+        args = [id]
+        res = cur.execute(sql, args=args)
+        res = cur.fetchall()
+
+        conn.close()
+
+        return res
+
+    @classmethod
+    def update_by_id(cls, db_schema, table_name, id, data, field_list):
+
+        conn = RDBService._get_db_connection()
+        cur = conn.cursor()
+
+        cols = []
+        args = []
+        sql = "update " + db_schema + "." + table_name + " set "
+
+        for k, v in data.items():
+            cols.append(k + "=%s")
+            args.append(v)
+
+        sql += ", ".join(cols)
+        sql += " where id=%s"
+
+        args.append(id)
+
+        res = cur.execute(sql, args=args)
+        res = cur.fetchall()
+
+        conn.close()
+
+        return res
+
+    @classmethod
+    def next_id(cls, db_schema, table_name):
+        max_id = RDBService.run_sql("select max(id) from " + db_schema + "." + table_name, None, True)[0]['max(id)']
+        return max_id + 1 if max_id else 1
+
+    @classmethod
     def create(cls, db_schema, table_name, create_data):
 
         cols = []

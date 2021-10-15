@@ -1,8 +1,8 @@
-from application_services.BaseApplicationResource import BaseRDBApplicationResource
+from application_services.base_application_resource import BaseRDBApplicationResource
 import database_services.RDBService as d_service
 
 
-class UserResource(BaseRDBApplicationResource):
+class OHResource(BaseRDBApplicationResource):
 
     def __init__(self):
         super().__init__()
@@ -13,4 +13,4 @@ class UserResource(BaseRDBApplicationResource):
 
     @classmethod
     def get_data_resource_info(cls):
-        return 'aaaaaF21E6156', 'users'
+        return 'ohdb', 'OfficeHours'

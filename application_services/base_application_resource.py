@@ -42,6 +42,33 @@ class BaseRDBApplicationResource(BaseApplicationResource):
         return res
 
     @classmethod
+    def get_by_id(cls, id):
+        db_name, table_name = cls.get_data_resource_info()
+        res = RDBService.find_by_id(db_name, table_name,
+                                    id, None)
+        return res
+
+    @classmethod
+    def update_by_id(cls, id, data):
+        db_name, table_name = cls.get_data_resource_info()
+        res = RDBService.update_by_id(db_name, table_name,
+                                      id, data, None)
+        return res
+
+    @classmethod
+    def delete_by_id(cls, id):
+        db_name, table_name = cls.get_data_resource_info()
+        res = RDBService.delete_by_id(db_name, table_name,
+                                      id, None)
+        return res
+
+    @classmethod
+    def create(cls, data):
+        db_name, table_name = cls.get_data_resource_info()
+        res = RDBService.create(db_name, table_name, data)
+        return res
+
+    @classmethod
     @abstractmethod
     def get_links(self, resource_data):
         pass
