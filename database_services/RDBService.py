@@ -31,7 +31,7 @@ class RDBService:
         return db_connection
 
     @classmethod
-    def run_sql(cls, sql_statement, args, fetch=False):
+    def _run_sql(cls, sql_statement, args, fetch=False):
 
         conn = RDBService._get_db_connection()
 
@@ -64,7 +64,7 @@ class RDBService:
         return res
 
     @classmethod
-    def get_where_clause_args(cls, template):
+    def _get_where_clause_args(cls, template):
 
         terms = []
         args = []
