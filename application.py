@@ -14,15 +14,15 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-app = Flask(__name__)
-CORS(app)
+application = Flask(__name__)
+CORS(application)
 
 ##################################################################################################################
 
 # DFF TODO A real service would have more robust health check methods.
 # This path simply echoes to check that the app is working.
 # The path is /health and the only method is GETs
-@app.route("/health", methods=["GET"])
+@application.route("/health", methods=["GET"])
 def health_check():
     rsp_data = {"status": "healthy", "time": str(datetime.now())}
     rsp_str = json.dumps(rsp_data)
@@ -34,8 +34,8 @@ def health_check():
 # The method take any REST request, and produces a response indicating what
 # the parameters, headers, etc. are. This is simply for education purposes.
 #
-@app.route("/api/demo/<parameter1>", methods=["GET", "POST", "PUT", "DELETE"])
-@app.route("/api/demo/", methods=["GET", "POST", "PUT", "DELETE"])
+@application.route("/api/demo/<parameter1>", methods=["GET", "POST", "PUT", "DELETE"])
+@application.route("/api/demo/", methods=["GET", "POST", "PUT", "DELETE"])
 def demo(parameter1=None):
     """
     Returns a JSON object containing a description of the received request.
@@ -62,12 +62,12 @@ def demo(parameter1=None):
 
 
 
-@app.route('/')
+@application.route('/')
 def hello_world():
     return '<u>Hello World!</u>'
 
 
-@app.route('/officehours', methods=['GET', 'POST'])
+@application.route('/officehours', methods=['GET', 'POST'])
 def oh_collection():
     """
     1. HTTP GET return all users.
@@ -84,7 +84,7 @@ def oh_collection():
         return rsp
 
 
-@app.route('/officehours/<oh_id>', methods=['GET', 'PUT', 'DELETE'])
+@application.route('/officehours/<oh_id>', methods=['GET', 'PUT', 'DELETE'])
 def specific_oh(oh_id):
     """
     1. Get a specific one by ID.
@@ -106,7 +106,7 @@ def specific_oh(oh_id):
         rsp = Response(json.dumps(res, default=str), status=200, content_type="application/json")
         return rsp
 
-@app.route('/<db_schema>/<table_name>/<column_name>/<prefix>')
+@application.route('/<db_schema>/<table_name>/<column_name>/<prefix>')
 def get_by_prefix(db_schema, table_name, column_name, prefix):
     res = RDBService.get_by_prefix(db_schema, table_name, column_name, prefix)
     rsp = Response(json.dumps(res, default=str), status=200, content_type="application/json")
@@ -114,4 +114,4 @@ def get_by_prefix(db_schema, table_name, column_name, prefix):
 
 
 if __name__ == '__main__':
-    app.run(host="0.0.0.0", port=5000)
+    application.run(host="0.0.0.0", port=5000)
