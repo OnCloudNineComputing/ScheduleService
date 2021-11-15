@@ -3,10 +3,9 @@ from flask_cors import CORS
 import json
 import logging
 from datetime import datetime
-
 import utils.rest_utils as rest_utils
 
-
+from middleware.notification import NotificationMiddlewareHandler
 from application_services.OHResource.oh_service import OHResource
 from database_services.RDBService import RDBService as RDBService
 
@@ -107,12 +106,10 @@ def specific_oh(oh_id):
 
     return rsp
 
-@app.route('/<db_schema>/<table_name>/<column_name>/<prefix>')
-def get_by_prefix(db_schema, table_name, column_name, prefix):
-    res = RDBService.get_by_prefix(db_schema, table_name, column_name, prefix)
-    rsp = Response(json.dumps(res, default=str), status=200, content_type="application/json")
+@app.after_request
+def send_notifications(rsp):
+    NotificationMiddlewareHandler.notify(request, rsp)
     return rsp
-
 
 if __name__ == '__main__':
     app.run()

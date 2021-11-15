@@ -4,6 +4,13 @@ import os
 # This is a bad place for this import
 import pymysql
 
+class Notification:
+
+    def __init__(self, topic, method, route):
+        self.topic = topic
+        self.path = route
+        self.method = method
+
 def get_db_info():
     """
     This is crappy code.
@@ -30,3 +37,11 @@ def get_db_info():
         }
 
     return db_info
+
+
+def get_notifications():
+    return [
+        Notification("arn:aws:sns:us-east-1:969959736549:OHTopic", "POST", "/officehours")
+    ]
+
+
