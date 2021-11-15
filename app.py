@@ -74,15 +74,16 @@ def oh_collection():
     2. HTTP POST with body --> create a user, i.e --> database.
     :return:
     """
-    if request.method == "GET":
-        res = OHResource.get_by_template(None)
-        rsp = Response(json.dumps(res, default=str), status=200, content_type="application/json")
-        return rsp
-    elif request.method == "POST":
-        res = OHResource.create(request.json)
-        rsp = Response(json.dumps(res, default=str), status=200, content_type="application/json")
-        return rsp
+    inputs = rest_utils.RESTContext(request)
+    rest_utils.log_request("oh_collection", inputs)
 
+    if inputs.method == "GET":
+        rsp = OHResource.get_by_template(inputs.args, inputs, order_by=inputs.order_by, limit=inputs.limit, offset=inputs.offset,
+                                              field_list=inputs.fields)
+    elif inputs.method == "POST":
+        rsp = OHResource.create(inputs.data)
+
+    return rsp
 
 @app.route('/officehours/<oh_id>', methods=['GET', 'PUT', 'DELETE'])
 def specific_oh(oh_id):
@@ -93,18 +94,18 @@ def specific_oh(oh_id):
     :param user_id:
     :return:
     """
-    if request.method == "GET":
-        res = OHResource.get_by_id(oh_id)
-        rsp = Response(json.dumps(res, default=str), status=200, content_type="application/json")
-        return rsp
-    elif request.method == 'PUT':
-        res = OHResource.update_by_id(oh_id, request.json)
-        rsp = Response(json.dumps(res, default=str), status=200, content_type="application/json")
-        return rsp
-    elif request.method == 'DELETE':
-        res = OHResource.delete_by_id(oh_id)
-        rsp = Response(json.dumps(res, default=str), status=200, content_type="application/json")
-        return rsp
+    inputs = rest_utils.RESTContext(request)
+    rest_utils.log_request("oh_by_id", inputs)
+    if inputs.method == "GET":
+        rsp = OHResource.get_by_oh_id(oh_id)
+
+    elif inputs.method == 'PUT':
+        rsp = OHResource.update_by_oh_id(oh_id, inputs.data)
+
+    elif inputs.method == 'DELETE':
+        rsp = OHResource.delete_by_oh_id(oh_id)
+
+    return rsp
 
 @app.route('/<db_schema>/<table_name>/<column_name>/<prefix>')
 def get_by_prefix(db_schema, table_name, column_name, prefix):

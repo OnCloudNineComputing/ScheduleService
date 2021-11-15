@@ -10,12 +10,14 @@ import utils.rest_utils as rest_utils
 from integrity_services.BaseIntegrityResource import BaseIntegrityResource, ValidationFunction
 
 
-def time_validation(time_str):
-    try:
-        datetime.strptime(time_str, "%I:%M %p").time()
-    except ValueError:
-         return False
-    return True
+def time_validation(format):
+    def time_valid(time_str):
+        try:
+            datetime.strptime(time_str, format).time()
+        except ValueError:
+             return False
+        return True
+    return time_valid
 
 
 class OHIntegrity(BaseIntegrityResource):
@@ -34,6 +36,8 @@ class OHIntegrity(BaseIntegrityResource):
         'zoom_link': str,
         'start_time': str,
         'end_time': str,
+        'start_date': str,
+        'end_date': str,
         'oh_days': str
     }
 
@@ -44,12 +48,18 @@ class OHIntegrity(BaseIntegrityResource):
         'oh_days': ValidationFunction(lambda x: re.match("^[MTWRFO]+$", x) is not None,
                                       "acceptable values are any combination of " +
                                       "MTWRFO, where O is for an online course."),
-        'start_time': ValidationFunction(time_validation,
+        'start_time': ValidationFunction(time_validation("%I:%M %p"),
                                          "must be a string in this format: " +
                                          "'Hour{1-12}:Minute{00-59} AM/PM'."),
-        'end_time':  ValidationFunction(time_validation,
+        'end_time':  ValidationFunction(time_validation("%I:%M %p"),
                                          "must be a string in this format: " +
                                          "'Hour{1-12}:Minute{00-59} AM/PM'."),
+        'start_date': ValidationFunction(time_validation("%m/%d/%y"),
+                                       "must be a string in this format: " +
+                                       "'month{00-12}/day{00-31}/year{00-99}'."),
+        'end_date': ValidationFunction(time_validation("%m/%d/%y"),
+                                       "must be a string in this format: " +
+                                       "'month{00-12}/day{00-31}/year{00-99}'."),
     }
 
 
@@ -59,6 +69,13 @@ class OHIntegrity(BaseIntegrityResource):
             return 200
         else:
             return 404
+
+    @classmethod
+    def field_validation(cls, fields):
+        for field in fields.split(','):
+            if field not in OHIntegrity.field_to_type:
+                return False
+        return True
 
     @classmethod
     def type_validation(cls, data):
@@ -74,7 +91,7 @@ class OHIntegrity(BaseIntegrityResource):
             if type(field) != required_type:
                 errors[field] = "Invalid {0} provided, must be of type {1}".format(field, str(type(required_type)))
 
-            elif field in OHIntegrity.field_to_validation_fn and not OHIntegrity.field_to_validation_fn[field].validate(data['field']):
+            elif field in OHIntegrity.field_to_validation_fn and not OHIntegrity.field_to_validation_fn[field].validate(data[field]):
                 errors[field] = OHIntegrity.field_to_validation_fn[field].error_msg
 
         if errors:
@@ -132,13 +149,15 @@ class OHIntegrity(BaseIntegrityResource):
                 return res[0]
         elif res is not None:
             return 200
+        else:
+            return 404
 
     @classmethod
     def delete_responses(cls, res):
         if res is not None:
             return 204
         else:
-            return 422
+            return 404
 
     @classmethod
     def oh_get_responses(cls, res):
@@ -163,6 +182,8 @@ class OHIntegrity(BaseIntegrityResource):
             rsp = Response("Success! The given data for the office hours " +
                            "that matched was updated as requested.", status=status,
                            content_type="text/plain")
+        elif status==404:
+            rsp = Response("No data found!", status=status, content_type="text/plain")
         else:
             rsp = Response("Failed! Matching office hours not found or unexpected error.",
                            status=422, content_type="text/plain")
@@ -175,6 +196,8 @@ class OHIntegrity(BaseIntegrityResource):
         if status == 204:
             rsp = Response("Success!",
                            status=status, content_type="text/plain")
+        elif status==404:
+            rsp = Response("No data found!", status=status, content_type="text/plain")
         else:
             rsp = Response("Failed! Could not delete all courses.",
                            status=status, content_type="text/plain")

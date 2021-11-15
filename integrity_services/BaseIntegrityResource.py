@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-
+from flask import Flask, Response
 
 class BaseIntegrityException(Exception):
 
@@ -36,6 +36,10 @@ class BaseIntegrityResource(ABC):
     @abstractmethod
     def delete_responses(cls, res):
         pass
+
+    @classmethod
+    def generate_response(cls, status, msg):
+        return Response(msg, status=status, content_type="text/plain")
 
 
 class ValidationFunction():

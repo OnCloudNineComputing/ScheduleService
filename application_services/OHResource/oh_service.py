@@ -1,5 +1,9 @@
 from application_services.base_application_resource import BaseRDBApplicationResource
-import database_services.RDBService as d_service
+from database_services.RDBService import RDBService
+from integrity_services.OHIntegrityResource import OHIntegrity
+from datetime import datetime
+
+DATABASE_LIMIT = 5
 
 
 class OHResource(BaseRDBApplicationResource):
@@ -8,25 +12,78 @@ class OHResource(BaseRDBApplicationResource):
         super().__init__()
 
     @classmethod
-    def get_by_oh_id(cls, oh_id, order_by=None, limit=None, offset=None, field_list=None):
+    def get_by_template(cls, template, inputs, order_by=None, limit=None, offset=None, field_list=None):
+        if field_list is not None and not OHIntegrity.field_validation(field_list):
+            return OHIntegrity.generate_response(404, "Invalid Field Selectors")
+        if order_by is not None and not OHIntegrity.field_validation([order_by]):
+            return OHIntegrity.generate_response(404, "Column not found")
+        if limit is not None and limit > DATABASE_LIMIT:
+            limit = 5
+        res = super().get_by_template(template, order_by=order_by, limit=limit, offset=offset, field_list=field_list)
+        res = OHResource.get_links(res, inputs)
+        return OHIntegrity.oh_get_responses(res)
+
+    @classmethod
+    def delete_by_template(cls, template):
+        res = super().delete_by_template(template)
+
+    @classmethod
+    def update_by_template(cls, data_template, where_template):
+        res = super().update_by_template(data_template, where_template)
+
+    @classmethod
+    def create(cls, data):
+        validation = OHIntegrity.input_validation(data)
+        if validation[0] == 200:
+            data["start_time"] = datetime.strptime(data["start_time"], "%I:%M %p").time()
+            data["end_time"] = datetime.strptime(data["end_time"], "%I:%M %p").time()
+            data["start_date"] = datetime.strptime(data["start_date"], "%m/%d/%y").date()
+            data["end_date"] = datetime.strptime(data["end_date"], "%m/%d/%y").date()
+            data["id"] = None
+            res = super().create(data)
+        else:
+            res = validation
+        rsp = OHIntegrity.post_responses(res)
+        return rsp
+
+    @classmethod
+    def get_by_oh_id(cls, oh_id, order_by=None, field_list=None):
+        if field_list is not None and not OHIntegrity.field_validation(field_list):
+            return OHIntegrity.generate_response(404, "Invalid Field Selectors")
+        if order_by is not None and not OHIntegrity.field_validation([order_by]):
+            return OHIntegrity.generate_response(404, "Column not found")
         db_name, table_name = OHResource.get_data_resource_info()
-        template = {"id" : oh_id}
-        res = d_service.find_by_template(db_name, table_name, template, order_by, limit, offset, field_list)
-        return res
+        template = {"id": oh_id}
+        res = RDBService.find_by_template(db_name, table_name, template, order_by=order_by, field_list=field_list)
+        return OHIntegrity.oh_get_responses(res)
 
     @classmethod
     def delete_by_oh_id(cls, oh_id):
-        db_name, table_name = OHResource.get_data_resource_info()
-        template = {"id" : oh_id}
-        res = d_service.delete_by_template(db_name, table_name, template)
-        return res
+        if_id_exits = OHResource.get_by_oh_id(oh_id)
+        if if_id_exits.status_code == 200:
+            db_name, table_name = OHResource.get_data_resource_info()
+            template = {"id": oh_id}
+            res = RDBService.delete_by_template(db_name, table_name, template)
+        else:
+            res = None
+
+        return OHIntegrity.oh_delete_responses(res)
 
     @classmethod
     def update_by_oh_id(cls, oh_id, data):
-        db_name, table_name = OHResource.get_data_resource_info()
-        template = {"id" : oh_id}
-        res = d_service.update_by_template(db_name, table_name, data, template)
-        return res
+        if_id_exits = OHResource.get_by_oh_id(oh_id)
+
+        if if_id_exits.status_code == 200:
+            validation = OHIntegrity.type_validation(data)
+            if validation[0] == 200:
+                db_name, table_name = OHResource.get_data_resource_info()
+                template = {"id": oh_id}
+                res = RDBService.update_by_template(db_name, table_name, data, template)
+            else:
+                res = validation
+        else:
+            res = None
+        return OHIntegrity.oh_put_responses(res)
 
     @classmethod
     def get_links(cls, resource_data, inputs):
