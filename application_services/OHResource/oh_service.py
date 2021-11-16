@@ -17,10 +17,11 @@ class OHResource(BaseRDBApplicationResource):
             return OHIntegrity.generate_response(404, "Invalid Field Selectors")
         if order_by is not None and not OHIntegrity.field_validation([order_by]):
             return OHIntegrity.generate_response(404, "Column not found")
-        if limit is not None and limit > DATABASE_LIMIT:
+        if limit is not None and int(limit) > DATABASE_LIMIT:
             limit = 5
         res = super().get_by_template(template, order_by=order_by, limit=limit, offset=offset, field_list=field_list)
-        res = OHResource.get_links(res, inputs)
+        if res:
+            res = OHResource.get_links(res, inputs)
         return OHIntegrity.oh_get_responses(res)
 
     @classmethod
