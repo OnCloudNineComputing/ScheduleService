@@ -78,6 +78,13 @@ class OHIntegrity(BaseIntegrityResource):
         return True
 
     @classmethod
+    def column_validation(cls, fields):
+        if not OHIntegrity.field_validation(fields):
+            return 400, {"fields": "Column Does Not Exist"}
+        else:
+            return 200, {}
+
+    @classmethod
     def type_validation(cls, data):
         input_fields = list(data.keys())
         errors = {}
@@ -85,6 +92,9 @@ class OHIntegrity(BaseIntegrityResource):
         for k in data.keys():
             if k not in OHIntegrity.field_to_type:
                 errors["fields"] = "Invalid Data Fields Provided"
+
+        if errors:
+            return 400, errors
 
         for field in data.keys():
             required_type = OHIntegrity.field_to_type[field]

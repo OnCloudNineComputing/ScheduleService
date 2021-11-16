@@ -33,16 +33,20 @@ class OHResource(BaseRDBApplicationResource):
 
     @classmethod
     def create(cls, data):
-        validation = OHIntegrity.input_validation(data)
-        if validation[0] == 200:
-            data["start_time"] = datetime.strptime(data["start_time"], "%I:%M %p").time()
-            data["end_time"] = datetime.strptime(data["end_time"], "%I:%M %p").time()
-            data["start_date"] = datetime.strptime(data["start_date"], "%m/%d/%y").date()
-            data["end_date"] = datetime.strptime(data["end_date"], "%m/%d/%y").date()
-            data["id"] = None
-            res = super().create(data)
+        col_validation = OHIntegrity.column_validation(data.keys())
+        if col_validation[0] == 200:
+            validation = OHIntegrity.input_validation(data)
+            if validation[0] == 200:
+                data["start_time"] = datetime.strptime(data["start_time"], "%I:%M %p").time()
+                data["end_time"] = datetime.strptime(data["end_time"], "%I:%M %p").time()
+                data["start_date"] = datetime.strptime(data["start_date"], "%m/%d/%y").date()
+                data["end_date"] = datetime.strptime(data["end_date"], "%m/%d/%y").date()
+                data["id"] = None
+                res = super().create(data)
+            else:
+                res = validation
         else:
-            res = validation
+            res = col_validation
         rsp = OHIntegrity.post_responses(res)
         return rsp
 
@@ -74,13 +78,17 @@ class OHResource(BaseRDBApplicationResource):
         if_id_exits = OHResource.get_by_oh_id(oh_id)
 
         if if_id_exits.status_code == 200:
-            validation = OHIntegrity.type_validation(data)
-            if validation[0] == 200:
-                db_name, table_name = OHResource.get_data_resource_info()
-                template = {"id": oh_id}
-                res = RDBService.update_by_template(db_name, table_name, data, template)
+            col_validation = OHIntegrity.column_validation(data.keys())
+            if col_validation[0] == 200:
+                validation = OHIntegrity.type_validation(data)
+                if validation[0] == 200:
+                    db_name, table_name = OHResource.get_data_resource_info()
+                    template = {"id": oh_id}
+                    res = RDBService.update_by_template(db_name, table_name, data, template)
+                else:
+                    res = validation
             else:
-                res = validation
+                res = col_validation
         else:
             res = None
         return OHIntegrity.oh_put_responses(res)
