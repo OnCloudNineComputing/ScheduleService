@@ -13,7 +13,7 @@ class OHResource(BaseRDBApplicationResource):
 
     @classmethod
     def get_by_template(cls, template, inputs, order_by=None, limit=None, offset=None, field_list=None):
-        if field_list is not None and not OHIntegrity.field_validation(field_list):
+        if field_list is not None and not OHIntegrity.field_validation(field_list.split(',')):
             return OHIntegrity.generate_response(404, "Invalid Field Selectors")
         if order_by is not None and not OHIntegrity.field_validation([order_by]):
             return OHIntegrity.generate_response(404, "Column not found")
@@ -48,7 +48,7 @@ class OHResource(BaseRDBApplicationResource):
 
     @classmethod
     def get_by_oh_id(cls, oh_id, order_by=None, field_list=None):
-        if field_list is not None and not OHIntegrity.field_validation(field_list):
+        if field_list is not None and not OHIntegrity.field_validation(field_list.split(',')):
             return OHIntegrity.generate_response(404, "Invalid Field Selectors")
         if order_by is not None and not OHIntegrity.field_validation([order_by]):
             return OHIntegrity.generate_response(404, "Column not found")

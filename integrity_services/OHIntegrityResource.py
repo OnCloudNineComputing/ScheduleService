@@ -72,7 +72,7 @@ class OHIntegrity(BaseIntegrityResource):
 
     @classmethod
     def field_validation(cls, fields):
-        for field in fields.split(','):
+        for field in fields:
             if field not in OHIntegrity.field_to_type:
                 return False
         return True
