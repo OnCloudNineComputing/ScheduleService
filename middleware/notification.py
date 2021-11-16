@@ -46,7 +46,14 @@ class NotificationMiddlewareHandler:
         for sub in subscriptions:
             if request.method == sub.method and request.path == sub.path:
                 try:
+                    data = request.get_json()
+                    data['start_date'] = str(data['start_date'])
+                    data['start_time'] = str(data['start_time'])
+                    data['end_date'] = str(data['end_date'])
+                    data['end_time'] = str(data['end_time'])
                     NotificationMiddlewareHandler.send_sns_message(sub.topic, request.get_json())
-                except Exception:
+                except Exception as e:
                     print("No notification sent")
+                    return False, e
+        return True, ""
 

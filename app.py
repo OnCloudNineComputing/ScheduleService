@@ -108,7 +108,9 @@ def specific_oh(oh_id):
 
 @app.after_request
 def send_notifications(rsp):
-    NotificationMiddlewareHandler.notify(request, rsp)
+    res, e = NotificationMiddlewareHandler.notify(request, rsp)
+    if not res:
+        app.logger.error("Couldn't send notif: " + str(e))
     return rsp
 
 if __name__ == '__main__':
