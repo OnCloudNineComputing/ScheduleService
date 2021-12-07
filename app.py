@@ -4,8 +4,10 @@ import json
 import logging
 from datetime import datetime
 import utils.rest_utils as rest_utils
+import requests
 
 from middleware.notification import NotificationMiddlewareHandler
+import middleware.context as context
 from application_services.OHResource.oh_service import OHResource
 from database_services.RDBService import RDBService as RDBService
 
@@ -106,6 +108,35 @@ def specific_oh(oh_id):
 
     return rsp
 
+@app.route('/officehours/<oh_id>/begin', methods=['GET'])
+def call_queue(oh_id):
+    inputs = rest_utils.RESTContext(request)
+    rest_utils.log_request("queue", inputs)
+
+    data = OHResource.get_by_oh_id(oh_id)
+
+    if data.status_code != 200:
+        return Response("Data not found", status=404,
+                           content_type="text/plain")
+    else:
+        data = data.json[0]
+
+    path = "/queue"
+
+    resp = requests.post(context.get_queue_url() + path, json={'office_hours_info': data})
+
+    if 'links' not in resp.json():
+        return Response("Problem with creation", status=400,
+                           content_type="text/plain")
+
+    else:
+        queue_url = resp.json()['links']['self']
+
+        resp = Response(status=201)
+        resp.headers['Location'] = queue_url
+        return resp
+
+
 @app.after_request
 def send_notifications(rsp):
     res, e = NotificationMiddlewareHandler.notify(request, rsp)
@@ -114,4 +145,4 @@ def send_notifications(rsp):
     return rsp
 
 if __name__ == '__main__':
-    app.run()
+    app.run(port=5001)

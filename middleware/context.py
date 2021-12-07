@@ -39,6 +39,13 @@ def get_db_info():
     return db_info
 
 
+def get_queue_url():
+    if os.environ.get("QueueURL"):
+        return os.environ.get("QueueURL")
+    else:
+        return ""
+
+
 def get_notifications():
     return [
         Notification("arn:aws:sns:us-east-1:969959736549:OHTopic", "POST", "/officehours")
