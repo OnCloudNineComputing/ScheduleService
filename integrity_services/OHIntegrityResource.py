@@ -41,8 +41,8 @@ class OHIntegrity(BaseIntegrityResource):
         'oh_days': str
     }
 
-    required_fields = ["ta_email", "ta_firstname", "ta_lastname", "course_name", "course_number",
-                       "start_time", "end_time", "oh_days"]
+    required_fields = ["ta_email", "course_name",
+                       "start_time", "end_time"]
 
     field_to_validation_fn = {
         'oh_days': ValidationFunction(lambda x: re.match("^[MTWRFO]+$", x) is not None,

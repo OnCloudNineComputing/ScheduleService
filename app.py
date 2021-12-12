@@ -132,7 +132,7 @@ def call_queue(oh_id):
     else:
         queue_url = resp.json()['links']['self']
 
-        resp = Response(status=201)
+        resp = Response(json.dumps({"links": queue_url}), status=201, content_type="application/json")
         resp.headers['Location'] = queue_url
         return resp
 
